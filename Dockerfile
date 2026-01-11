@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -30,7 +30,6 @@ RUN mkdir -p /opt/tenants
 
 # Configure environment defaults
 ENV Q8_AGENT_PORT=8080
-ENV Q8_AGENT_ADMIN_TOKEN=change-me
 ENV Q8_TENANTS_ROOT=/opt/tenants
 
 EXPOSE 8080
