@@ -3,7 +3,7 @@
 .PHONY: build docker-build up down restart logs dev clean help
 
 # Go parameters
-GO=$(shell which go 2>/dev/null || echo go)
+GO=$(shell which go 2>/dev/null || [ -f /usr/local/go/bin/go ] && echo /usr/local/go/bin/go || echo go)
 BINARY_NAME=q8-agent
 MAIN_PATH=./cmd/agent
 
