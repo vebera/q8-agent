@@ -25,7 +25,7 @@ func main() {
 		log.Fatal("Fatal: docker compose is not installed or accessible")
 	}
 
-	orchestrator := service.NewOrchestrator(fsManager, dockerRunner)
+	orchestrator := service.NewOrchestrator(cfg, fsManager, dockerRunner)
 	handler := api.NewHandler(orchestrator)
 
 	// 3. Setup Routes

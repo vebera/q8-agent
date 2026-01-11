@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/qate/q8-agent/internal/config"
 	"github.com/qate/q8-agent/internal/docker"
 	"github.com/qate/q8-agent/internal/domain"
 	"github.com/qate/q8-agent/internal/fs"
@@ -13,13 +14,15 @@ import (
 type Orchestrator struct {
 	fs     *fs.Manager
 	docker *docker.Runner
+	cfg    *config.Config
 }
 
 // NewOrchestrator creates a new orchestrator
-func NewOrchestrator(fs *fs.Manager, docker *docker.Runner) *Orchestrator {
+func NewOrchestrator(cfg *config.Config, fs *fs.Manager, docker *docker.Runner) *Orchestrator {
 	return &Orchestrator{
 		fs:     fs,
 		docker: docker,
+		cfg:    cfg,
 	}
 }
 
@@ -134,4 +137,51 @@ func (s *Orchestrator) GetTenantImages(subdomain string) (string, error) {
 	}
 
 	return string(out), nil
+}
+
+// CreateMongoDBUser creates a new MongoDB user and database
+func (s *Orchestrator) CreateMongoDBUser(req domain.MongoDBUserCreateRequest) error {
+	// Use credentials from config, NOT from request
+	log.Printf("Creating MongoDB user: %s for database: %s using configured mongo host: %s",
+		req.NewUser, req.DatabaseName, s.cfg.MongoHost)
+
+	// Format connection string for admin using configured credentials
+	// connString := fmt.Sprintf("mongodb://%s:%s@%s:%s/admin",
+	// 	s.cfg.MongoUser, s.cfg.MongoPassword, s.cfg.MongoHost, s.cfg.MongoPort)
+
+	// Construct script
+	// Note: We still use req.NewUser and req.NewPassword from request as these are specific to the new tenant
+	script := fmt.Sprintf(`
+		db = db.getSiblingDB('admin');
+		db.auth('%s', '%s');
+		db = db.getSiblingDB('%s');
+		try {
+			db.createUser({
+				user: '%s',
+				pwd: '%s',
+				roles: [{ role: 'readWrite', db: '%s' }]
+			});
+			print('User created successfully');
+		} catch (e) {
+			if (e.code === 51003) { // User already exists
+				db.changeUserPassword('%s', '%s');
+				print('User already exists, password updated');
+			} else {
+				throw e;
+			}
+		}
+	`, s.cfg.MongoUser, s.cfg.MongoPassword, req.DatabaseName,
+		req.NewUser, req.NewPassword, req.DatabaseName,
+		req.NewUser, req.NewPassword)
+
+	// Execute via docker using the configured host IP
+	// For 'host' logic in docker run, we might need special handling if MongoHost is not reachable
+	// from within the container easily unless we use --network host which we do.
+	out, err := s.docker.ExecuteMongoScript(s.cfg.MongoHost, script)
+	if err != nil {
+		return fmt.Errorf("mongo execution failed: %s: %w", string(out), err)
+	}
+
+	log.Printf("MongoDB user creation output: %s", string(out))
+	return nil
 }

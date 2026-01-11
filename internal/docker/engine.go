@@ -69,3 +69,22 @@ func (r *Runner) IsInstalled() bool {
 	err := cmd.Run()
 	return err == nil
 }
+
+// ExecuteMongoScript executes a script in a mongo container
+func (r *Runner) ExecuteMongoScript(host, script string) ([]byte, error) {
+	// args for docker run
+	// --rm: remove container after run
+	// --network host: use host network to reach the mongo instance
+	// mongo:latest: image to use
+	// mongosh ...: command to run
+	args := []string{
+		"run", "--rm", "--network", "host",
+		"mongo:latest",
+		"mongosh",
+		host,
+		"--eval", script,
+	}
+
+	cmd := exec.Command("docker", args...)
+	return cmd.CombinedOutput()
+}

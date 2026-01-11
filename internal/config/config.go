@@ -6,17 +6,25 @@ import (
 
 // Config holds the agent configuration
 type Config struct {
-	Port        string
-	AdminToken  string
-	TenantsRoot string
+	Port          string
+	AdminToken    string
+	TenantsRoot   string
+	MongoHost     string
+	MongoPort     string
+	MongoUser     string
+	MongoPassword string
 }
 
 // LoadConfig loads configuration from environment variables
 func LoadConfig() *Config {
 	return &Config{
-		Port:        getEnv("Q8_AGENT_PORT", "8080"),
-		AdminToken:  getEnv("Q8_AGENT_ADMIN_TOKEN", "change-me"),
-		TenantsRoot: getEnv("Q8_TENANTS_ROOT", "/opt/tenants"),
+		Port:          getEnv("Q8_AGENT_PORT", "8080"),
+		AdminToken:    getEnv("Q8_AGENT_ADMIN_TOKEN", "change-me"),
+		TenantsRoot:   getEnv("Q8_TENANTS_ROOT", "/opt/tenants"),
+		MongoHost:     getEnv("Q8_MONGO_HOST", "127.0.0.1"),
+		MongoPort:     getEnv("Q8_MONGO_PORT", "27017"),
+		MongoUser:     getEnv("Q8_MONGO_USER", "admin"),
+		MongoPassword: getEnv("Q8_MONGO_PASSWORD", ""),
 	}
 }
 
