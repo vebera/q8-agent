@@ -33,6 +33,7 @@ docker-pull: ## Pull the latest image from the registry
 pull: docker-pull ## Alias for docker-pull
 
 up: ## Start the agent in detached mode
+	@docker network inspect q8-traefik-network >/dev/null 2>&1 || docker network create q8-traefik-network
 	docker compose up -d
 
 down: ## Stop and remove the agent container
