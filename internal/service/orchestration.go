@@ -68,12 +68,18 @@ func (s *Orchestrator) TeardownTenant(subdomain string) error {
 		log.Printf("Warning: docker down failed (might already be gone): %s", string(out))
 	}
 
-	// 2. Remove files
-	if err := s.fs.RemoveTenantDir(subdomain); err != nil {
-		return fmt.Errorf("fs remove error: %w", err)
+	// 2. Archive files instead of removing
+	newDir, err := s.fs.ArchiveTenantDir(subdomain)
+	if err != nil {
+		return fmt.Errorf("fs archive error: %w", err)
 	}
 
-	log.Printf("Tenant %s torn down successfully", subdomain)
+	if newDir != "" {
+		log.Printf("Tenant %s archived to %s", subdomain, newDir)
+	} else {
+		log.Printf("Tenant %s directory not found, nothing to archive", subdomain)
+	}
+
 	return nil
 }
 
