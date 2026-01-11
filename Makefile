@@ -1,6 +1,6 @@
 # Build and Manage Q8 Agent
 
-.PHONY: build docker-build up down restart logs dev clean help
+.PHONY: build docker-build docker-pull docker-tag docker-push up down restart logs dev clean help init-config
 
 # Go parameters
 GO=$(shell if command -v go >/dev/null 2>&1; then command -v go; elif [ -f /usr/local/go/bin/go ]; then echo /usr/local/go/bin/go; else echo go; fi)
@@ -26,6 +26,9 @@ docker-tag: ## Tag the image for the registry
 
 docker-push: docker-build docker-tag ## Build, tag and push the image to the registry
 	docker push $(REGISTRY)/$(IMAGE_NAME):$(TAG)
+
+docker-pull: ## Pull the latest image from the registry
+	docker pull $(REGISTRY)/$(IMAGE_NAME):$(TAG)
 
 up: ## Start the agent in detached mode
 	docker compose up -d
