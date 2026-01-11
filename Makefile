@@ -2,7 +2,8 @@
 
 .PHONY: build docker-build up down restart logs dev clean help
 
-# Binary name
+# Go parameters
+GO=$(shell which go 2>/dev/null || echo go)
 BINARY_NAME=q8-agent
 MAIN_PATH=./cmd/agent
 
@@ -10,7 +11,7 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 build: ## Build the Go binary locally
-	go build -o tmp/$(BINARY_NAME) $(MAIN_PATH)
+	$(GO) build -o tmp/$(BINARY_NAME) $(MAIN_PATH)
 
 docker-build: ## Build the Docker image
 	docker compose build
@@ -32,4 +33,4 @@ dev: ## Run with hot-reloading using Air
 
 clean: ## Remove local binary and build artifacts
 	rm -rf tmp/
-	go clean
+	$(GO) clean
