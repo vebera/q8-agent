@@ -1,0 +1,293 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Q8 Agent API",
+        "description": "Agent service for managing tenant environments (Docker stacks) on host servers.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Local development server"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health check",
+                "description": "Returns OK if the agent is running.",
+                "responses": {
+                    "200": {
+                        "description": "Agent is healthy",
+                        "content": {
+                            "text/plain": {
+                                "example": "OK"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/tenants/provision": {
+            "post": {
+                "summary": "Provision a new tenant",
+                "description": "Creates tenant directory, writes configuration files, and spins up the Docker stack.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantProvisionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tenant provisioned successfully",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "provisioned",
+                                    "id": "tenant-123"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal server error"
+                    }
+                }
+            }
+        },
+        "/v1/tenants/teardown/{subdomain}": {
+            "post": {
+                "summary": "Teardown a tenant",
+                "description": "Shuts down the Docker stack and removes the tenant directory.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "subdomain",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tenant torn down successfully"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/v1/tenants/restart/{subdomain}": {
+            "post": {
+                "summary": "Restart tenant containers",
+                "description": "Executes docker compose restart for the tenant stack.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "subdomain",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Containers restarted successfully"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/v1/tenants/status/{subdomain}": {
+            "get": {
+                "summary": "Get tenant container status",
+                "description": "Returns JSON output from docker compose ps.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "subdomain",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status retrieved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/v1/tenants/logs/{subdomain}": {
+            "get": {
+                "summary": "Get tenant container logs",
+                "description": "Returns tail of logs for the tenant stack.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "subdomain",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tail",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Logs retrieved",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/v1/tenants/images/{subdomain}": {
+            "get": {
+                "summary": "Get tenant image information",
+                "description": "Returns JSON output from docker compose images.",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "subdomain",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image info retrieved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        },
+        "schemas": {
+            "TenantProvisionRequest": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "subdomain",
+                    "compose_content",
+                    "env_content"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the tenant"
+                    },
+                    "subdomain": {
+                        "type": "string",
+                        "description": "Subdomain identifying the tenant environment"
+                    },
+                    "compose_content": {
+                        "type": "string",
+                        "description": "Contents of the docker-compose.yml file"
+                    },
+                    "env_content": {
+                        "type": "string",
+                        "description": "Contents of the .env file"
+                    }
+                }
+            }
+        }
+    }
+}
