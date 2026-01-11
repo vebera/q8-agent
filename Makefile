@@ -46,12 +46,13 @@ clean: ## Remove local binary and build artifacts
 	rm -rf tmp/
 	$(GO) clean
 
-init-config: ## Create a template .env file with default variables
+init-config: ## Create a template .env file with a unique 32-char token
 	@if [ ! -f .env ]; then \
+		TOKEN=$$(openssl rand -hex 16); \
 		echo "Q8_AGENT_PORT=8080" > .env; \
-		echo "Q8_AGENT_ADMIN_TOKEN=secret-token-here" >> .env; \
+		echo "Q8_AGENT_ADMIN_TOKEN=$$TOKEN" >> .env; \
 		echo "Q8_TENANTS_ROOT=/opt/tenants" >> .env; \
-		echo "✅ .env file created with default variables"; \
+		echo "✅ .env file created with unique token: $$TOKEN"; \
 	else \
 		echo "⚠️  .env file already exists"; \
 	fi
