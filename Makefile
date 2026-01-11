@@ -7,14 +7,25 @@ GO=$(shell if command -v go >/dev/null 2>&1; then command -v go; elif [ -f /usr/
 BINARY_NAME=q8-agent
 MAIN_PATH=./cmd/agent
 
+# Docker parameters
+REGISTRY=91.99.168.0:5000
+IMAGE_NAME=q8-agent
+TAG=latest
+
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 build: ## Build the Go binary locally
 	$(GO) build -o tmp/$(BINARY_NAME) $(MAIN_PATH)
 
-docker-build: ## Build the Docker image
-	docker compose build
+docker-build: ## Build the Docker image locally
+	docker build -t $(IMAGE_NAME):$(TAG) .
+
+docker-tag: ## Tag the image for the registry
+	docker tag $(IMAGE_NAME):$(TAG) $(REGISTRY)/$(IMAGE_NAME):$(TAG)
+
+docker-push: docker-build docker-tag ## Build, tag and push the image to the registry
+	docker push $(REGISTRY)/$(IMAGE_NAME):$(TAG)
 
 up: ## Start the agent in detached mode
 	docker compose up -d
@@ -34,3 +45,13 @@ dev: ## Run with hot-reloading using Air
 clean: ## Remove local binary and build artifacts
 	rm -rf tmp/
 	$(GO) clean
+
+init-config: ## Create a template .env file with default variables
+	@if [ ! -f .env ]; then \
+		echo "Q8_AGENT_PORT=8080" > .env; \
+		echo "Q8_AGENT_ADMIN_TOKEN=secret-token-here" >> .env; \
+		echo "Q8_TENANTS_ROOT=/opt/tenants" >> .env; \
+		echo "✅ .env file created with default variables"; \
+	else \
+		echo "⚠️  .env file already exists"; \
+	fi
