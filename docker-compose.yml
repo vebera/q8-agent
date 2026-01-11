@@ -4,14 +4,14 @@ services:
     container_name: q8-agent
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "${Q8_AGENT_PORT:-8080}:${Q8_AGENT_PORT:-8080}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/tenants:/opt/tenants
+      - ${Q8_TENANTS_ROOT:-/opt/tenants}:${Q8_TENANTS_ROOT:-/opt/tenants}
     environment:
-      - Q8_AGENT_PORT=8080
-      - Q8_AGENT_ADMIN_TOKEN=${Q8_AGENT_ADMIN_TOKEN:-secret-token-here}
-      - Q8_TENANTS_ROOT=/opt/tenants
+      - Q8_AGENT_PORT=${Q8_AGENT_PORT:-8080}
+      - Q8_AGENT_ADMIN_TOKEN=${Q8_AGENT_ADMIN_TOKEN}
+      - Q8_TENANTS_ROOT=${Q8_TENANTS_ROOT:-/opt/tenants}
     networks:
       - q8-network
 
